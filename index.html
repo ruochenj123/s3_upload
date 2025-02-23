@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload to S3</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aws-sdk/2.1336.0/aws-sdk.min.js"></script>
+</head>
+<body>
+    <h2>Upload File to S3</h2>
+    <label>AWS Access Key ID:</label>
+    <input type="text" id="accessKey" placeholder="Enter Access Key ID" /><br>
+    <label>AWS Secret Access Key:</label>
+    <input type="text" id="secretKey" placeholder="Enter Secret Access Key" /><br>
+    <label>Bucket Name:</label>
+    <input type="text" id="bucketName" placeholder="Enter Bucket Name" /><br>
+    <input type="file" id="fileInput" />
+    <button onclick="uploadFile()">Upload</button>
+    <p id="status"></p>
+    
+    <script>
+        function uploadFile() {
+            const accessKey = document.getElementById('accessKey').value;
+            const secretKey = document.getElementById('secretKey').value;
+            const bucketName = document.getElementById('bucketName').value;
+            const fileInput = document.getElementById('fileInput');
+            const status = document.getElementById('status');
+            
+            if (!accessKey || !secretKey || !bucketName || !fileInput.files.length) {
+                alert("Please fill in all fields and select a file.");
+                return;
+            }
+            
+            AWS.config.update({
+                accessKeyId: accessKey,
+                secretAccessKey: secretKey,
+            });
+            
+            const s3 = new AWS.S3({
+                region: 'us-east-1',
+                params: { Bucket: bucketName }
+            });
+            
+            const file = fileInput.files[0];
+            const params = {
+                Bucket: bucketName,
+                Key: file.name,
+                Body: file,
+                ACL: 'public-read',
+            };
+            
+            s3.upload(params, function (err, data) {
+                if (err) {
+                    status.innerHTML = "Error: " + err.message;
+                } else {
+                    status.innerHTML = "File uploaded successfully: <a href='" + data.Location + "' target='_blank'>View File</a>";
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
