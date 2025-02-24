@@ -18,40 +18,51 @@
     
     <script>
         function uploadFile() {
+            console.log("Upload function called");
             const accessKey = document.getElementById('accessKey').value;
             const secretKey = document.getElementById('secretKey').value;
             const bucketName = document.getElementById('bucketName').value;
             const fileInput = document.getElementById('fileInput');
-            const status = document.getElementById('status');
+            let status = document.getElementById('status');
+            
+            status.innerHTML = "Uploading...";
             
             if (!accessKey || !secretKey || !bucketName || !fileInput.files.length) {
                 alert("Please fill in all fields and select a file.");
+                console.log("Missing input fields");
                 return;
             }
             
+            console.log("Initializing AWS SDK");
             AWS.config.update({
                 accessKeyId: accessKey,
                 secretAccessKey: secretKey,
             });
             
             const s3 = new AWS.S3({
-                region: 'us-east-1',
+                region: 'us-east-2',
                 params: { Bucket: bucketName }
             });
             
             const file = fileInput.files[0];
+            console.log("File selected: ", file.name);
             const params = {
                 Bucket: bucketName,
                 Key: file.name,
-                Body: file,
-                ACL: 'public-read',
+                Body: file
             };
             
+            console.log("Starting file upload...");
             s3.upload(params, function (err, data) {
                 if (err) {
-                    status.innerHTML = "Error: " + err.message;
+                    console.error("Upload error: ", err);
+                    status.innerHTML = "<span style='color: red;'>Error: " + err.message + "</span>";
                 } else {
-                    status.innerHTML = "File uploaded successfully: <a href='" + data.Location + "' target='_blank'>View File</a>";
+                    console.log("Upload successful: ", data);
+                    status.style.display = "none";
+                    status.offsetHeight;
+                    status.style.display = "block";
+                    status.innerHTML = "File uploaded successfully";
                 }
             });
         }
